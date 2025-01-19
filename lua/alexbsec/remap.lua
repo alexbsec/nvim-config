@@ -72,3 +72,11 @@ vim.keymap.set("n", "<leader>mr", "<cmd>CellularAutomaton make_it_rain<CR>");
 vim.keymap.set("n", "<leader><leader>", function()
     vim.cmd("so")
 end)
+
+-- For open split
+vim.api.nvim_set_keymap(
+    "n", -- Normal mode
+    "<leader>os", -- Keybinding
+    ":lua require('alexbsec.open_split').open_definition_in_split()<CR>",
+    { noremap = true, silent = true }
+)

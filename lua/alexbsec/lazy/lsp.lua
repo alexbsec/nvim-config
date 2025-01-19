@@ -36,7 +36,7 @@ return {
                 "gopls",
                 "elixirls",
                 "clangd",
-                "omnisharp"
+                "omnisharp",
             },
             handlers = {
                 function(server_name) -- default handler (optional)
