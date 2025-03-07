@@ -80,3 +80,9 @@ vim.api.nvim_set_keymap(
     ":lua require('alexbsec.open_split').open_definition_in_split()<CR>",
     { noremap = true, silent = true }
 )
+
+vim.keymap.set("n", "<leader>rf", function()
+    print("Finding references...")
+    vim.lsp.buf.references()
+end, { noremap = true, silent = false })
+
