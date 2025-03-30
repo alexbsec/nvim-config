@@ -89,3 +89,7 @@ vim.keymap.set("n", "<leader>rf", function()
     vim.lsp.buf.references()
 end, { noremap = true, silent = false })
 
+
+vim.keymap.set("n", "<leader>ml", function()
+  vim.cmd("luafile .nvim.lua")
+end, { desc = "Load .nvim.lua project config" })
