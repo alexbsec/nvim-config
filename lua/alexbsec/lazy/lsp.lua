@@ -1,3 +1,4 @@
+
 return {
     "neovim/nvim-lspconfig",
     dependencies = {
@@ -15,17 +16,26 @@ return {
     },
 
     config = function()
-        require("conform").setup({
-            formatters_by_ft = {
-            }
-        })
-        local cmp = require('cmp')
+        local lspconfig = require("lspconfig")
+        local cmp = require("cmp")
         local cmp_lsp = require("cmp_nvim_lsp")
-        local capabilities = vim.tbl_deep_extend(
-            "force",
-            {},
-            vim.lsp.protocol.make_client_capabilities(),
-            cmp_lsp.default_capabilities())
+
+        local configs = require("lspconfig.configs")
+
+        if not configs.gdscript then
+            configs.gdscript = {
+                default_config = {
+                    name = "gdscript",
+                    cmd = { "dummy" },
+                    filetypes = { "gd", "gdscript", "gdscript3" },
+                    root_dir = require("lspconfig.util").root_pattern("project.godot", ".git"),
+                }
+            }
+        end
+
+        require("conform").setup({
+            formatters_by_ft = {}
+        })
 
         require("fidget").setup({})
         require("mason").setup()
@@ -39,14 +49,13 @@ return {
                 "omnisharp",
             },
             handlers = {
-                function(server_name) -- default handler (optional)
-                    require("lspconfig")[server_name].setup {
-                        capabilities = capabilities
+                function(server_name)
+                    lspconfig[server_name].setup {
+                        capabilities = cmp_lsp.default_capabilities()
                     }
                 end,
 
-                zls = function()
-                    local lspconfig = require("lspconfig")
+                ["zls"] = function()
                     lspconfig.zls.setup({
                         root_dir = lspconfig.util.root_pattern(".git", "build.zig", "zls.json"),
                         settings = {
@@ -60,10 +69,10 @@ return {
                     vim.g.zig_fmt_parse_errors = 0
                     vim.g.zig_fmt_autosave = 0
                 end,
+
                 ["lua_ls"] = function()
-                    local lspconfig = require("lspconfig")
                     lspconfig.lua_ls.setup {
-                        capabilities = capabilities,
+                        capabilities = cmp_lsp.default_capabilities(),
                         settings = {
                             Lua = {
                                 runtime = { version = "Lua 5.1" },
@@ -77,12 +86,27 @@ return {
             }
         })
 
+        -- ⬇️ Conecta manualmente o gdscript LSP após o Mason setup
+        local port = tonumber(os.getenv("GDScript_Port") or "6005")
+        local socket = vim.lsp.rpc.connect("127.0.0.1", port)
+
+        lspconfig.gdscript.setup({
+            name = "gdscript",
+            cmd = socket,
+            rpc = socket,
+            root_dir = lspconfig.util.root_pattern("project.godot", ".git"),
+            filetypes = { "gd", "gdscript", "gdscript3" },
+            on_attach = function(client, bufnr)
+                print("✅ GDScript LSP conectado manualmente")
+            end,
+        })
+
         local cmp_select = { behavior = cmp.SelectBehavior.Select }
 
         cmp.setup({
             snippet = {
                 expand = function(args)
-                    require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
+                    require('luasnip').lsp_expand(args.body)
                 end,
             },
             mapping = cmp.mapping.preset.insert({
@@ -93,16 +117,16 @@ return {
             }),
             sources = cmp.config.sources({
                 { name = 'nvim_lsp' },
-                { name = 'luasnip' }, -- For luasnip users.
+                { name = 'luasnip' },
             }, {
                 { name = 'buffer' },
             })
         })
 
         vim.diagnostic.config({
-            virtual_text = true, -- shows inline error message
-            signs = true, -- shows E/W/etc in the gutter
-            underline = true, -- underlines the error in the code
+            virtual_text = true,
+            signs = true,
+            underline = true,
             update_in_insert = false,
             severity_sort = true,
             float = {

@@ -84,6 +84,9 @@ vim.api.nvim_set_keymap(
     { noremap = true, silent = true }
 )
 
+
+vim.keymap.set("n", "<leader>od", require("alexbsec.gdscript").open_godot_doc_in_tab, { desc = "Abrir doc em nova aba" })
+
 vim.keymap.set("n", "<leader>rf", function()
     print("Finding references...")
     vim.lsp.buf.references()
